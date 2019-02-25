@@ -1,0 +1,13 @@
+add_executable(assembler_dev source/main.cpp)
+target_link_libraries(assembler_dev PRIVATE Assembler::Assembler)
+
+include(${CMAKE_SOURCE_DIR}/cmake/Utilities.cmake)
+assign_source_group("assembler" ${ASSEMBLER_HEADER_LIST})
+assign_source_group("assembler" ${ASSEMBLER_SOURCE_LIST})
+assign_source_group_Utility()
+assign_source_group_SimpleMath()
+assign_source_group_Constitutive()
+assign_source_group_FlexMesh()
+assign_source_group_FeaIo()
+assign_source_group_FiniteElement()
+assign_source_group_SparseLinearAlgebra()

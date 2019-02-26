@@ -1,6 +1,10 @@
 #include "assembler/SerialAssembler.h"
 
 #include "utility/Exceptions.h"
+#include "finite_element/FiniteElement.h"
+#include "finite_element/BaseFormulation.h"
+
+#include <memory>
 
 namespace assembler
 {
@@ -10,28 +14,23 @@ namespace assembler
 		// so the element terms can be added
 		for (auto& matrix_tuple : this->queued_matrix_assemblies_)
 		{
-			std::get<0>(matrix_tuple).start_assembly();
+			std::get<0>(matrix_tuple)->start_assembly();
 		}
 		for (auto& vector_tuple : this->queued_vector_assemblies_)
 		{
-			std::get<0>(vector_tuple).start_assembly();
+			std::get<0>(vector_tuple)->start_assembly();
 		}
 
 		throw _UTIL_MSG_EXCEPT_C("TODO: Finish implementation of SerialAssembler::execute");
-		/*
 		// Now execute the element and assemblies operations
 		simple_math::GeneralVector elem_solution_vector;
-		for (auto& e_ptr : mesh_.elements())
+		for (auto& e_ptr : this->mesh_.elements())
 		{
-			// Get the element to global DoF map
-			auto element_dofs = dof_manager_.get_element_dofs(e);
-
 			// Provide the current solution in case the element requries it.
-			elem_solution_vector.resize(element_dofs.size());
-			gl_solution_vector.get_sub_vector(element_dofs, elem_solution_vector);
+			elem_solution_vector = gl_solution_vector.get_element_part(e_ptr->get_local_number());
 
 			// Start calculation block
-			e_ptr->get_formulation().start_calculations(elem_solution_vector);
+			e_ptr->start_calculations(elem_solution_vector);
 
 			// Execute queued element operations
 			for (ElementOperation& operation : queued_operations_)
@@ -48,12 +47,11 @@ namespace assembler
 				// system is never assembled, provide the element matrices for elements
 				// that have had an internal state variable change or have kinematic nonlinearities
 				// combined with a change in the global solution vector.
-				if (!gl_matrix.supports_local_updates() || e_ptr->requires_update())
-				{
-					auto element_matrix = std::get<1>(*e_ptr);
-					gl_matrix.add_element_matrix(e_ptr->get_local_number(),
-						blocks, n_blocks);
-				}
+				//if (!gl_matrix.supports_local_updates()) || e_ptr->requires_update())
+				//{
+					gl_matrix->add_element_matrix(e_ptr->get_local_number(),
+						std::get<1>(matrix_tuple)(*e_ptr));
+				//}
 			}
 
 			// Execute the queued vector assemblies
@@ -62,25 +60,23 @@ namespace assembler
 			{
 				auto gl_vector = std::get<0>(vector_tuple);
 
-				auto element_vector = std::get<1>(*e_ptr);
-				gl_vector.add_element_vector(e_ptr->get_local_number(),
-					blocks, n_blocks);
+				gl_vector->add_element_vector(e_ptr->get_local_number(),
+					std::get<1>(vector_tuple)(*e_ptr));
 			}
-
+			
 			// End calculation block
-			e_ptr->get_formulation().end_calculations();
+			e_ptr->end_calculations();
 		}
-		*/
 
 
 		// Indicate to the aseembled matrices/vectors that assembly is done
 		for (auto& matrix_tuple : this->queued_matrix_assemblies_)
 		{
-			std::get<0>(matrix_tuple).end_assembly();
+			std::get<0>(matrix_tuple)->end_assembly();
 		}
 		for (auto& vector_tuple : this->queued_vector_assemblies_)
 		{
-			std::get<0>(vector_tuple).end_assembly();
+			std::get<0>(vector_tuple)->end_assembly();
 		}
 
 		queued_operations_.clear();

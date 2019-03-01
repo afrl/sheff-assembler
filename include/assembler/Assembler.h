@@ -39,7 +39,7 @@ namespace assembler
 			const ElementVectorCallback& get_element_vector_callback);
 		/// Execute any queued operations/assemblies.  This will clear the queued operations/assemblies
 		/// once complete.
-		virtual void execute(const sparse_linear_algebra::Vector& gl_solution_vector) = 0;
+		virtual void execute(const sparse_linear_algebra::Vector * const gl_solution_vector) = 0;
 
 	protected:
 		std::deque<ElementOperation> queued_operations_;

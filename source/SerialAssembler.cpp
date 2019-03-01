@@ -8,7 +8,7 @@
 
 namespace assembler
 {
-	void assembler::SerialAssembler::execute(const sparse_linear_algebra::Vector & gl_solution_vector)
+	void assembler::SerialAssembler::execute(const sparse_linear_algebra::Vector * gl_solution_vector)
 	{
 		// Set any global matrices / vectors to zero that require assembly
 		// so the element terms can be added
@@ -27,7 +27,7 @@ namespace assembler
 		for (auto& e_ptr : this->mesh_.elements())
 		{
 			// Provide the current solution in case the element requries it.
-			elem_solution_vector = gl_solution_vector.get_element_part(e_ptr->get_local_number());
+			elem_solution_vector = gl_solution_vector->get_element_part(e_ptr->get_local_number());
 
 			// Start calculation block
 			e_ptr->start_calculations(elem_solution_vector);
@@ -42,7 +42,7 @@ namespace assembler
 			for (auto& matrix_tuple : queued_matrix_assemblies_)
 			{
 				auto gl_matrix = std::get<0>(matrix_tuple);
-				
+
 				// For the case that the global matrix is "matrix-free" in that the global
 				// system is never assembled, provide the element matrices for elements
 				// that have had an internal state variable change or have kinematic nonlinearities
@@ -63,7 +63,7 @@ namespace assembler
 				gl_vector->add_element_vector(e_ptr->get_local_number(),
 					std::get<1>(vector_tuple)(*e_ptr));
 			}
-			
+
 			// End calculation block
 			e_ptr->end_calculations();
 		}

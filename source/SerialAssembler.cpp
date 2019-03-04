@@ -21,13 +21,15 @@ namespace assembler
 			std::get<0>(vector_tuple)->start_assembly();
 		}
 
-		throw _UTIL_MSG_EXCEPT_C("TODO: Finish implementation of SerialAssembler::execute");
 		// Now execute the element and assemblies operations
 		simple_math::GeneralVector elem_solution_vector;
 		for (auto& e_ptr : this->mesh_.elements())
 		{
 			// Provide the current solution in case the element requries it.
 			elem_solution_vector = gl_solution_vector->get_element_part(e_ptr->get_local_number());
+
+			// This should be separated out in the future, but for now provide the workspace
+			e_ptr->set_workspace(&workspace_.element_workspace);
 
 			// Start calculation block
 			e_ptr->start_calculations(elem_solution_vector);

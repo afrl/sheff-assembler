@@ -43,8 +43,8 @@ namespace assembler
 
 	protected:
 		std::deque<ElementOperation> queued_operations_;
-		std::deque<std::tuple<sparse_linear_algebra::SparseMatrix *, const ElementMatrixCallback&>> queued_matrix_assemblies_;
-		std::deque<std::tuple<sparse_linear_algebra::Vector *, const ElementVectorCallback&>> queued_vector_assemblies_;
+		std::deque<std::tuple<sparse_linear_algebra::SparseMatrix *, const ElementMatrixCallback>> queued_matrix_assemblies_;
+		std::deque<std::tuple<sparse_linear_algebra::Vector *, const ElementVectorCallback>> queued_vector_assemblies_;
 
 		/// A const reference to mesh that this assembler is responsible for
 		const flex_mesh::Mesh<flex_mesh::Node, finite_element::FiniteElement>& mesh_;
@@ -66,11 +66,11 @@ namespace assembler
 
 	inline void Assembler::queue_matrix_assembly(sparse_linear_algebra::SparseMatrix * gl_matrix, const ElementMatrixCallback & get_element_matrix_callback)
 	{
-		queued_matrix_assemblies_.push_back(std::tie<sparse_linear_algebra::SparseMatrix *, const ElementMatrixCallback&>(gl_matrix, get_element_matrix_callback));
+		queued_matrix_assemblies_.push_back(std::tie<sparse_linear_algebra::SparseMatrix *, const ElementMatrixCallback>(gl_matrix, get_element_matrix_callback));
 	}
 
 	inline void Assembler::queue_vector_assembly(sparse_linear_algebra::Vector * gl_vector, const ElementVectorCallback & get_element_vector_callback)
 	{
-		queued_vector_assemblies_.push_back(std::tie<sparse_linear_algebra::Vector *, const ElementVectorCallback&>(gl_vector, get_element_vector_callback));
+		queued_vector_assemblies_.push_back(std::tie<sparse_linear_algebra::Vector *, const ElementVectorCallback>(gl_vector, get_element_vector_callback));
 	}
 }

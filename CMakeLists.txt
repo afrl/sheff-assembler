@@ -7,6 +7,10 @@ project(ASSEMBLER VERSION 1.0.0 LANGUAGES CXX)
 option(ASSEMBLER_BuildDev "Build the project in the dev folder. (intended for debugging this project by devs)" OFF)
 option(ASSEMBLER_BuildTests "Build the unit tests." OFF)
 
+# For debugging, print generator, compiler, and options
+message(STATUS "Gen: ${CMAKE_GENERATOR}, CXX: ${CMAKE_CXX_COMPILER_ID}, Mode: ${CMAKE_BUILD_TYPE}")
+message(STATUS "Dev: ${ASSEMBLER_BuildDev}, Tests: ${ASSEMBLER_BuildTests}")
+
 ##################
 # Checking input #
 ##################

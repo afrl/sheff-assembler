@@ -28,6 +28,7 @@ namespace assembler
 		Assembler(const flex_mesh::Mesh<flex_mesh::Node, finite_element::FiniteElement>& mesh);
 		virtual ~Assembler() {}
 
+        virtual void set_element_workspaces() = 0;
 		/// Queue an operation on the element.  This could be updating internal state variables, calculating
 		/// information output, etc.
 		void queue_operation(const ElementOperation& operation);

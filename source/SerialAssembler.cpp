@@ -8,7 +8,15 @@
 
 namespace assembler
 {
-	void assembler::SerialAssembler::execute(const sparse_linear_algebra::Vector * gl_solution_vector)
+    void SerialAssembler::set_element_workspaces()
+    {
+        for (auto& e_ptr : this->mesh_.elements())
+        {
+            e_ptr->set_workspace(&workspace_.element_workspace);
+        }
+    }
+
+    void assembler::SerialAssembler::execute(const sparse_linear_algebra::Vector * gl_solution_vector)
 	{
 		// Set any global matrices / vectors to zero that require assembly
 		// so the element terms can be added

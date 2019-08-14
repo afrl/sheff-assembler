@@ -16,7 +16,7 @@ namespace assembler
 	struct ThreadWorkspace
 	{
 		/// The workspace for elements to use while performing calculations.
-		finite_element::ElementWorkspace element_workspace;
+		std::unique_ptr<finite_element::ElementWorkspace> element_workspace_ptr;
 		/// Since the constitutive relations are not thread safe (they have state and temporary
 		/// variables), each thread will need its own object.  The elements that this thread owns
 		/// will need to be updated to point to this thread's element workspace and constitutive
@@ -26,5 +26,10 @@ namespace assembler
 		/// it actually owns the constitutive relations that the owned elements point to.
 		std::map<constitutive::BaseConstitutiveRelation *,
 			std::unique_ptr<constitutive::BaseConstitutiveRelation>> constitutive_relations;
+
+        ThreadWorkspace()
+        {
+            element_workspace_ptr = std::make_unique<finite_element::ElementWorkspace>();
+        }
 	};
 }

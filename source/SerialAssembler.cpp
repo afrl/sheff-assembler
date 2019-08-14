@@ -12,7 +12,7 @@ namespace assembler
     {
         for (auto& e_ptr : this->mesh_.elements())
         {
-            e_ptr->set_workspace(&workspace_.element_workspace);
+            e_ptr->set_workspace(workspace_.element_workspace_ptr.get());
         }
     }
 
@@ -37,7 +37,7 @@ namespace assembler
 			elem_solution_vector = gl_solution_vector->get_element_part(e_ptr->get_local_number());
 
 			// This should be separated out in the future, but for now provide the workspace
-			e_ptr->set_workspace(&workspace_.element_workspace);
+			e_ptr->set_workspace(workspace_.element_workspace_ptr.get());
 
 			// Start calculation block
 			e_ptr->start_calculations(elem_solution_vector);

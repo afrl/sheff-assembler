@@ -22,7 +22,8 @@ namespace assembler
 		// so the element terms can be added
 		for (auto& matrix_tuple : this->queued_matrix_assemblies_)
 		{
-			std::get<0>(matrix_tuple)->start_assembly();
+			std::get<0>(matrix_tuple)->start_assembly(
+                sparse_linear_algebra::ElementAssemblyType::INSERT_ALL);
 		}
 		for (auto& vector_tuple : this->queued_vector_assemblies_)
 		{

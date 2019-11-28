@@ -4,12 +4,11 @@ cmake_policy(SET CMP0048 NEW)
 project(ASSEMBLER VERSION 1.0.0 LANGUAGES CXX)
 
 # Options
-option(ASSEMBLER_BuildDev "Build the project in the dev folder. (intended for debugging this project by devs)" OFF)
 option(ASSEMBLER_BuildTests "Build the unit tests." OFF)
 
 # For debugging, print generator, compiler, and options
 message(STATUS "Gen: ${CMAKE_GENERATOR}, CXX: ${CMAKE_CXX_COMPILER_ID}, Mode: ${CMAKE_BUILD_TYPE}")
-message(STATUS "Dev: ${ASSEMBLER_BuildDev}, Tests: ${ASSEMBLER_BuildTests}")
+message(STATUS "Tests: ${ASSEMBLER_BuildTests}")
 
 ##################
 # Checking input #
@@ -84,11 +83,6 @@ assign_source_group_SparseLinearAlgebra()
 #################################
 # Add dev and unit test targets #
 #################################
-
-# Build dev
-if(ASSEMBLER_BuildDev)
-    add_subdirectory(dev)
-endif()
     
 # Build tests
 if(ASSEMBLER_BuildTests)

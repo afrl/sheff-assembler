@@ -1,7 +1,6 @@
 #pragma once
 
-#include "finite_element/ElementWorkspace.h"
-#include "constitutive/BaseConstitutiveRelation.h"
+#include "finite_element/workspaces/ElementWorkspace.h"
 
 #include <map>
 #include <memory>
@@ -17,15 +16,6 @@ namespace assembler
 	{
 		/// The workspace for elements to use while performing calculations.
 		std::unique_ptr<finite_element::ElementWorkspace> element_workspace_ptr;
-		/// Since the constitutive relations are not thread safe (they have state and temporary
-		/// variables), each thread will need its own object.  The elements that this thread owns
-		/// will need to be updated to point to this thread's element workspace and constitutive
-		/// relation.  This map give a map from the original constitutive relation to the new
-		/// one that this thread owns.  It will only be used when the threads are initialized.
-		/// However, the map will be kept around until the end of this thread's lifetime since
-		/// it actually owns the constitutive relations that the owned elements point to.
-		std::map<constitutive::BaseConstitutiveRelation *,
-			std::unique_ptr<constitutive::BaseConstitutiveRelation>> constitutive_relations;
 
         ThreadWorkspace()
         {

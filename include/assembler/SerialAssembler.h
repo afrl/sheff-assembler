@@ -11,7 +11,6 @@ namespace assembler
 		using Assembler::Assembler;
 		virtual ~SerialAssembler() {}
 
-        virtual void set_element_workspaces() override;
 		/// Execute any queued operations/assemblies.  This will clear the queued operations/assemblies
 		/// once complete.  This provides the serial implementation of execute.
 		virtual void execute(const sparse_linear_algebra::Vector * gl_solution_vector) override;

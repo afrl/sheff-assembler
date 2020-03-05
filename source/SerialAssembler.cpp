@@ -2,20 +2,11 @@
 
 #include "utility/Exceptions.h"
 #include "finite_element/FiniteElement.h"
-#include "finite_element/BaseFormulation.h"
 
 #include <memory>
 
 namespace assembler
 {
-    void SerialAssembler::set_element_workspaces()
-    {
-        for (auto& e_ptr : this->mesh_.elements())
-        {
-            e_ptr->set_workspace(workspace_.element_workspace_ptr.get());
-        }
-    }
-
     void assembler::SerialAssembler::execute(const sparse_linear_algebra::Vector * gl_solution_vector)
 	{
 		// Set any global matrices / vectors to zero that require assembly
@@ -37,11 +28,10 @@ namespace assembler
 			// Provide the current solution in case the element requries it.
 			elem_solution_vector = gl_solution_vector->get_element_part(e_ptr->get_local_number());
 
-			// This should be separated out in the future, but for now provide the workspace
-			e_ptr->set_workspace(workspace_.element_workspace_ptr.get());
-
 			// Start calculation block
-			e_ptr->start_calculations(elem_solution_vector);
+			e_ptr->start_calculations(
+                *workspace_.element_workspace_ptr,
+                elem_solution_vector);
 
 			// Execute queued element operations
 			for (ElementOperation& operation : queued_operations_)
@@ -49,34 +39,50 @@ namespace assembler
 				operation(*e_ptr);
 			}
 
-			// Execute the queued matrix assemblies
-			for (auto& matrix_tuple : queued_matrix_assemblies_)
-			{
-				auto gl_matrix = std::get<0>(matrix_tuple);
+            // Build a bitset of all of the flags for the element assembly
+            finite_element::FEMatricesAndVectors::Bitset all_set_flags;
+            for (auto& matrix_tuple : queued_matrix_assemblies_)
+            {
+                all_set_flags.flip(std::get<1>(matrix_tuple));
+            }
+            for (auto& vector_tuple : queued_vector_assemblies_)
+            {
+                all_set_flags.flip(std::get<1>(vector_tuple));
+            }
+            
+            auto&& result = e_ptr->calculate(
+                all_set_flags,
+                *workspace_.element_workspace_ptr);
 
-				// For the case that the global matrix is "matrix-free" in that the global
-				// system is never assembled, provide the element matrices for elements
-				// that have had an internal state variable change or have kinematic nonlinearities
-				// combined with a change in the global solution vector.
-				//if (!gl_matrix.supports_local_updates()) || e_ptr->requires_update())
-				//{
-					gl_matrix->add_element_matrix(e_ptr->get_local_number(),
-						std::get<1>(matrix_tuple)(*e_ptr));
-				//}
-			}
+			// Now assemble the results into global matrices/vectors
+            for (auto& matrix_tuple : queued_matrix_assemblies_)
+            {
+                auto gl_matrix = std::get<0>(matrix_tuple);
+                auto&& element_matrix = result.get_matrix(std::get<1>(matrix_tuple));
 
-			// Execute the queued vector assemblies
-			// This assumes global vectors will always be assembled
-			for (auto& vector_tuple : queued_vector_assemblies_)
-			{
-				auto gl_vector = std::get<0>(vector_tuple);
+                // For the case that the global matrix is "matrix-free" in that the global
+                // system is never assembled, provide the element matrices for elements
+                // that have had an internal state variable change or have kinematic nonlinearities
+                // combined with a change in the global solution vector.
+                //if (!gl_matrix.supports_local_updates()) || e_ptr->requires_update())
+                //{
+                gl_matrix->add_element_matrix(
+                    e_ptr->get_local_number(),
+                    std::move(element_matrix));
+                //}
+            }
+            for (auto& vector_tuple : queued_vector_assemblies_)
+            {
+                auto gl_vector = std::get<0>(vector_tuple);
+                auto&& element_vector = result.get_vector(std::get<1>(vector_tuple));
 
-				gl_vector->add_element_vector(e_ptr->get_local_number(),
-					std::get<1>(vector_tuple)(*e_ptr));
-			}
+                gl_vector->add_element_vector(
+                    e_ptr->get_local_number(),
+                    std::move(element_vector));
+            }
 
 			// End calculation block
-			e_ptr->end_calculations();
+			e_ptr->end_calculations(*workspace_.element_workspace_ptr);
 		}
 
 

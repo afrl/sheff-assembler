@@ -28,24 +28,37 @@ namespace assembler
 		Assembler(const flex_mesh::Mesh<flex_mesh::Node, finite_element::FiniteElement>& mesh);
 		virtual ~Assembler() {}
 
-        virtual void set_element_workspaces() = 0;
-		/// Queue an operation on the element.  This could be updating internal state variables, calculating
-		/// information output, etc.
+		/// Queue an operation on the element.  This could be updating internal state variables,
+		/// calculating information output, etc.
 		void queue_operation(const ElementOperation& operation);
+
 		/// Queue a element to global matrix assembly operation.
-		void queue_matrix_assembly(sparse_linear_algebra::SparseMatrix * gl_matrix,
-			const ElementMatrixCallback& get_element_matrix_callback);
-		/// Queue a element to global vector assembly operation.
-		void queue_vector_assembly(sparse_linear_algebra::Vector * gl_vector,
-			const ElementVectorCallback& get_element_vector_callback);
-		/// Execute any queued operations/assemblies.  This will clear the queued operations/assemblies
-		/// once complete.
+        /// \param flag - indicates what quantity at the element level to calculate, which will be
+        ///        assembled into the global matrix.
+        /// \param gl_matrix - the global matrix to assemble the element quantities into.
+		void queue_assembly(
+            const finite_element::FEMatricesAndVectors::Flags flag,
+            sparse_linear_algebra::SparseMatrix * gl_matrix);
+
+        /// Queue a element to global vector assembly operation.
+        /// \param flag - indicates what quantity at the element level to calculate, which will be
+        ///        assembled into the global vector.
+        /// \param gl_matrix - the global vector to assemble the element quantities into.
+        void queue_assembly(
+            const finite_element::FEMatricesAndVectors::Flags flag,
+            sparse_linear_algebra::Vector* gl_vector);
+
+		/// Execute any queued operations/assemblies.  This will clear the queued
+		/// operations/assemblies once complete.
 		virtual void execute(const sparse_linear_algebra::Vector * const gl_solution_vector) = 0;
 
 	protected:
+        using MatrixAssemblyTuple = std::tuple<sparse_linear_algebra::SparseMatrix*, const finite_element::FEMatricesAndVectors::Flags>;
+        using VectorAssemblyTuple = std::tuple<sparse_linear_algebra::Vector*, const finite_element::FEMatricesAndVectors::Flags>;
+
 		std::deque<ElementOperation> queued_operations_;
-		std::deque<std::tuple<sparse_linear_algebra::SparseMatrix *, const ElementMatrixCallback>> queued_matrix_assemblies_;
-		std::deque<std::tuple<sparse_linear_algebra::Vector *, const ElementVectorCallback>> queued_vector_assemblies_;
+		std::deque<MatrixAssemblyTuple> queued_matrix_assemblies_;
+		std::deque<VectorAssemblyTuple> queued_vector_assemblies_;
 
 		/// A const reference to mesh that this assembler is responsible for
 		const flex_mesh::Mesh<flex_mesh::Node, finite_element::FiniteElement>& mesh_;
@@ -55,7 +68,8 @@ namespace assembler
 	// Definitions //
 	/////////////////
 
-	inline assembler::Assembler::Assembler(const flex_mesh::Mesh<flex_mesh::Node, finite_element::FiniteElement>& mesh)
+	inline assembler::Assembler::Assembler(
+        const flex_mesh::Mesh<flex_mesh::Node, finite_element::FiniteElement>& mesh)
 		: mesh_(mesh)
 	{
 	}
@@ -65,13 +79,34 @@ namespace assembler
 		queued_operations_.push_back(operation);
 	}
 
-	inline void Assembler::queue_matrix_assembly(sparse_linear_algebra::SparseMatrix * gl_matrix, const ElementMatrixCallback & get_element_matrix_callback)
-	{
-		queued_matrix_assemblies_.push_back(std::tie<sparse_linear_algebra::SparseMatrix *, const ElementMatrixCallback>(gl_matrix, get_element_matrix_callback));
-	}
+    inline void Assembler::queue_assembly(
+        const finite_element::FEMatricesAndVectors::Flags flag, 
+        sparse_linear_algebra::SparseMatrix* gl_matrix)
+    {
+        finite_element::FEMatricesAndVectors::Bitset flags_allowed =
+            utility::mask(finite_element::FEMatricesAndVectors::Flags::LHSMatrix);
 
-	inline void Assembler::queue_vector_assembly(sparse_linear_algebra::Vector * gl_vector, const ElementVectorCallback & get_element_vector_callback)
-	{
-		queued_vector_assemblies_.push_back(std::tie<sparse_linear_algebra::Vector *, const ElementVectorCallback>(gl_vector, get_element_vector_callback));
-	}
+        _UTIL_ASSERT_C(flags_allowed.contains(flag),
+            "The given flag is not allowed to be assembled into a globla matrix.  "
+            "Either the flag is for a vector quantity or a new flag was added to "
+            "the code and this method needs to be updated.");
+
+        queued_matrix_assemblies_.push_back(MatrixAssemblyTuple(gl_matrix, flag));
+    }
+
+    inline void Assembler::queue_assembly(
+        const finite_element::FEMatricesAndVectors::Flags flag, 
+        sparse_linear_algebra::Vector* gl_vector)
+    {
+        finite_element::FEMatricesAndVectors::Bitset flags_allowed =
+            utility::mask(finite_element::FEMatricesAndVectors::Flags::RHSVector) |
+            utility::mask(finite_element::FEMatricesAndVectors::Flags::CompleteRHSVector);
+
+        _UTIL_ASSERT_C(flags_allowed.contains(flag),
+            "The given flag is not allowed to be assembled into a globla matrix.  "
+            "Either the flag is for a vector quantity or a new flag was added to "
+            "the code and this method needs to be updated.");
+
+        queued_vector_assemblies_.push_back(VectorAssemblyTuple(gl_vector, flag));
+    }
 }

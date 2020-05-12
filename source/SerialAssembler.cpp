@@ -1,6 +1,7 @@
 #include "assembler/SerialAssembler.h"
 
 #include "utility/Exceptions.h"
+#include "utility/MPIUtils.h"
 #include "finite_element/FiniteElement.h"
 
 #include <memory>
@@ -39,46 +40,49 @@ namespace assembler
 				operation(*e_ptr);
 			}
 
-            // Build a bitset of all of the flags for the element assembly
-            finite_element::FEMatricesAndVectors::Bitset all_set_flags;
-            for (auto& matrix_tuple : queued_matrix_assemblies_)
+            if (e_ptr->get_parent_partition() == utility::MPIUtils::get_local_rank())
             {
-                all_set_flags.flip(std::get<1>(matrix_tuple));
-            }
-            for (auto& vector_tuple : queued_vector_assemblies_)
-            {
-                all_set_flags.flip(std::get<1>(vector_tuple));
-            }
-            
-            auto&& result = e_ptr->calculate(
-                all_set_flags,
-                *workspace_.element_workspace_ptr);
+                // Build a bitset of all of the flags for the element assembly
+                finite_element::FEMatricesAndVectors::Bitset all_set_flags;
+                for (auto& matrix_tuple : queued_matrix_assemblies_)
+                {
+                    all_set_flags.flip(std::get<1>(matrix_tuple));
+                }
+                for (auto& vector_tuple : queued_vector_assemblies_)
+                {
+                    all_set_flags.flip(std::get<1>(vector_tuple));
+                }
 
-			// Now assemble the results into global matrices/vectors
-            for (auto& matrix_tuple : queued_matrix_assemblies_)
-            {
-                auto gl_matrix = std::get<0>(matrix_tuple);
-                auto&& element_matrix = result.get_matrix(std::get<1>(matrix_tuple));
+                auto&& result = e_ptr->calculate(
+                    all_set_flags,
+                    *workspace_.element_workspace_ptr);
 
-                // For the case that the global matrix is "matrix-free" in that the global
-                // system is never assembled, provide the element matrices for elements
-                // that have had an internal state variable change or have kinematic nonlinearities
-                // combined with a change in the global solution vector.
-                //if (!gl_matrix.supports_local_updates()) || e_ptr->requires_update())
-                //{
-                gl_matrix->add_element_matrix(
-                    e_ptr->get_local_number(),
-                    std::move(element_matrix));
-                //}
-            }
-            for (auto& vector_tuple : queued_vector_assemblies_)
-            {
-                auto gl_vector = std::get<0>(vector_tuple);
-                auto&& element_vector = result.get_vector(std::get<1>(vector_tuple));
+                // Now assemble the results into global matrices/vectors
+                for (auto& matrix_tuple : queued_matrix_assemblies_)
+                {
+                    auto gl_matrix = std::get<0>(matrix_tuple);
+                    auto&& element_matrix = result.get_matrix(std::get<1>(matrix_tuple));
 
-                gl_vector->add_element_vector(
-                    e_ptr->get_local_number(),
-                    std::move(element_vector));
+                    // For the case that the global matrix is "matrix-free" in that the global
+                    // system is never assembled, provide the element matrices for elements
+                    // that have had an internal state variable change or have kinematic nonlinearities
+                    // combined with a change in the global solution vector.
+                    //if (!gl_matrix.supports_local_updates()) || e_ptr->requires_update())
+                    //{
+                    gl_matrix->add_element_matrix(
+                        e_ptr->get_local_number(),
+                        std::move(element_matrix));
+                    //}
+                }
+                for (auto& vector_tuple : queued_vector_assemblies_)
+                {
+                    auto gl_vector = std::get<0>(vector_tuple);
+                    auto&& element_vector = result.get_vector(std::get<1>(vector_tuple));
+
+                    gl_vector->add_element_vector(
+                        e_ptr->get_local_number(),
+                        std::move(element_vector));
+                }
             }
 
 			// End calculation block

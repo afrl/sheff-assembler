@@ -1,9 +1,8 @@
 #pragma once
 
-#include "finite_element/FiniteElement.h"
+#include "finite_element/FiniteElementMesh.h"
 #include "sparse_linear_algebra/SparseMatrix.h"
 #include "sparse_linear_algebra/Vector.h"
-#include "flex_mesh/mesh/Mesh.h"
 
 #include <deque>
 #include <functional>
@@ -19,13 +18,20 @@ namespace assembler
 	class Assembler
 	{
 	public:
-		using ElementOperation = std::function<void(finite_element::FiniteElement& fe)>;
+		using ElementOperation = std::function<void(finite_element::FiniteElementAccessor& fe)>;
 		using ElementMatrixReturnType = simple_math::EigenBlockMatrix;
-		using ElementMatrixCallback = std::function<ElementMatrixReturnType(finite_element::FiniteElement& fe)>;
+		using ElementMatrixCallback = std::function<ElementMatrixReturnType(finite_element::FiniteElementAccessor& fe)>;
 		using ElementVectorReturnType = simple_math::EigenBlockVector;
-		using ElementVectorCallback = std::function<ElementVectorReturnType(finite_element::FiniteElement& fe)>;
+		using ElementVectorCallback = std::function<ElementVectorReturnType(finite_element::FiniteElementAccessor& fe)>;
 
-		Assembler(const flex_mesh::Mesh<flex_mesh::Node, finite_element::FiniteElement>& mesh);
+		/// @brief Constructor
+		/// @param fe_mesh - finite element mesh that contains the topological mesh and element
+		///        layouts.  Note: an assembler object will hold a persistent reference to the
+		///        given finite_element::FiniteElementMesh object for the assembler's lifetime.
+		///        Additionally, the mesh object is non-const because the field/enrichment
+		///        data within the layouts needs to be modifiable for opperations like updating
+		///        ISV's in a field/enrichment.
+		Assembler(finite_element::FiniteElementMesh& fe_mesh);
 		virtual ~Assembler() {}
 
 		/// Queue an operation on the element.  This could be updating internal state variables,
@@ -61,15 +67,14 @@ namespace assembler
 		std::deque<VectorAssemblyTuple> queued_vector_assemblies_;
 
 		/// A const reference to mesh that this assembler is responsible for
-		const flex_mesh::Mesh<flex_mesh::Node, finite_element::FiniteElement>& mesh_;
+        finite_element::FiniteElementMesh& mesh_;
 	};
 
 	/////////////////
 	// Definitions //
 	/////////////////
 
-	inline assembler::Assembler::Assembler(
-        const flex_mesh::Mesh<flex_mesh::Node, finite_element::FiniteElement>& mesh)
+	inline assembler::Assembler::Assembler(finite_element::FiniteElementMesh& mesh)
 		: mesh_(mesh)
 	{
 	}

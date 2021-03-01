@@ -24,7 +24,7 @@ void assembler::SerialAssembler::execute(const sparse_linear_algebra::Vector* gl
 
     // Now execute the element and assemblies operations
     simple_math::GeneralVector elem_solution_vector;
-    for (auto& fe : mesh_.finite_elements())
+    for (auto fe : mesh_.finite_elements())
     {
         // Provide the current solution in case the element requries it.
         elem_solution_vector = gl_solution_vector->get_element_part(fe.element.local_index());

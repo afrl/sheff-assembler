@@ -8,7 +8,8 @@
 
 namespace assembler
 {
-void assembler::SerialAssembler::execute(const sparse_linear_algebra::Vector* gl_solution_vector)
+void assembler::SerialAssembler::execute(const std::vector<double>& local_solution_vector,
+                                         const dof_manager::DofMap& dof_map)
 {
     // Set any global matrices / vectors to zero that require assembly
     // so the element terms can be added
@@ -27,7 +28,8 @@ void assembler::SerialAssembler::execute(const sparse_linear_algebra::Vector* gl
     for (auto fe : mesh_.finite_elements())
     {
         // Provide the current solution in case the element requries it.
-        elem_solution_vector = gl_solution_vector->get_element_part(fe.element.local_index());
+        elem_solution_vector =
+          extract_element_solution_vector(local_solution_vector, dof_map, fe.element.local_index());
 
         auto params = finite_element::FiniteElement::make_params(fe.element,
                                                                  elem_solution_vector,

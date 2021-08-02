@@ -9,6 +9,8 @@ find_package(FeaIo CONFIG REQUIRED HINTS
   "${CMAKE_SOURCE_DIR}/../fea_io/install_dir" "${CMAKE_SOURCE_DIR}/../../fea_io/install_dir" "${CMAKE_SOURCE_DIR}/modules/fea_io/install_dir")
 find_package(FiniteElement CONFIG REQUIRED HINTS 
   "${CMAKE_SOURCE_DIR}/../finite_element/install_dir" "${CMAKE_SOURCE_DIR}/../../finite_element/install_dir" "${CMAKE_SOURCE_DIR}/modules/finite_element/install_dir")
+find_package(DofManager CONFIG REQUIRED HINTS 
+  "${CMAKE_SOURCE_DIR}/../dof_manager/install_dir" "${CMAKE_SOURCE_DIR}/../../dof_manager/install_dir" "${CMAKE_SOURCE_DIR}/modules/dof_manager/install_dir")
 find_package(SparseLinearAlgebra CONFIG REQUIRED HINTS 
   "${CMAKE_SOURCE_DIR}/../sparse_linear_algebra/install_dir" "${CMAKE_SOURCE_DIR}/../../sparse_linear_algebra/install_dir" "${CMAKE_SOURCE_DIR}/modules/sparse_linear_algebra/install_dir")
 

@@ -23,9 +23,9 @@ include(${PROJECT_SOURCE_DIR}/cmake/CommonInputChecks.cmake)
 # Declare dependencies #
 ########################
 
-if(NOT TARGET FiniteElement::FiniteElement)
-    message(STATUS "FiniteElement did not already exist, finding package.")
-    find_package(FiniteElement CONFIG REQUIRED HINTS "${PROJECT_SOURCE_DIR}/../../first_party/finite_element/build")
+if(NOT TARGET DofManager::DofManager)
+    message(STATUS "DofManager did not already exist, finding package.")
+    find_package(DofManager CONFIG REQUIRED HINTS "${PROJECT_SOURCE_DIR}/../../first_party/finite_element/build")
 endif()
 if(NOT TARGET SparseLinearAlgebra::SparseLinearAlgebra)
     message(STATUS "SparseLinearAlgebra did not already exist, finding package.")
@@ -67,6 +67,7 @@ target_link_libraries(assembler PUBLIC Mesh::Mesh)
 target_link_libraries(assembler PUBLIC FeaIo::FeaIo)
 target_link_libraries(assembler PUBLIC FiniteElement::FiniteElement)
 target_link_libraries(assembler PUBLIC SparseLinearAlgebra::SparseLinearAlgebra)
+target_link_libraries(assembler PUBLIC DofManager::DofManager)
 
 ###########################
 # Assigning source groups #

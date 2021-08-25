@@ -55,13 +55,13 @@ void assembler::SerialAssembler::execute(const std::vector<double>& local_soluti
                 all_set_flags.flip(std::get<1>(vector_tuple));
             }
 
-            auto&& result = finite_element::FiniteElement::calculate(params, all_set_flags);
+            auto result = finite_element::FiniteElement::calculate(params, all_set_flags);
 
             // Now assemble the results into global matrices/vectors
             for (auto& matrix_tuple : queued_matrix_assemblies_)
             {
                 auto gl_matrix        = std::get<0>(matrix_tuple);
-                auto&& element_matrix = result.get_matrix(std::get<1>(matrix_tuple));
+                auto element_matrix = result.get_matrix(std::get<1>(matrix_tuple));
 
                 // For the case that the global matrix is "matrix-free" in that the global
                 // system is never assembled, provide the element matrices for elements
@@ -75,7 +75,7 @@ void assembler::SerialAssembler::execute(const std::vector<double>& local_soluti
             for (auto& vector_tuple : queued_vector_assemblies_)
             {
                 auto gl_vector        = std::get<0>(vector_tuple);
-                auto&& element_vector = result.get_vector(std::get<1>(vector_tuple));
+                auto element_vector = result.get_vector(std::get<1>(vector_tuple));
 
                 gl_vector->add_element_vector(fe.element.local_index(), std::move(element_vector));
             }

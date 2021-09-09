@@ -25,11 +25,14 @@ include(${PROJECT_SOURCE_DIR}/cmake/CommonInputChecks.cmake)
 
 if(NOT TARGET DofManager::DofManager)
     message(STATUS "DofManager did not already exist, finding package.")
-    find_package(DofManager CONFIG REQUIRED HINTS "${PROJECT_SOURCE_DIR}/../../first_party/finite_element/build")
+    find_package(DofManager CONFIG REQUIRED NO_CMAKE_SYSTEM_PACKAGE_REGISTRY HINTS
+                 "${PROJECT_SOURCE_DIR}/../../first_party/dof_manager/build")
 endif()
+
 if(NOT TARGET SparseLinearAlgebra::SparseLinearAlgebra)
     message(STATUS "SparseLinearAlgebra did not already exist, finding package.")
-    find_package(SparseLinearAlgebra CONFIG REQUIRED HINTS "${PROJECT_SOURCE_DIR}/../../first_party/sparse_linear_algebra/build")
+    find_package(SparseLinearAlgebra CONFIG REQUIRED NO_CMAKE_SYSTEM_PACKAGE_REGISTRY HINTS
+                 "${PROJECT_SOURCE_DIR}/../../first_party/sparse_linear_algebra/build")
 endif()
 
 ################################

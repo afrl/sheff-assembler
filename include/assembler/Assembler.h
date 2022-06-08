@@ -1,6 +1,7 @@
 #pragma once
 
 #include "dof_manager/DofMap.h"
+#include "finite_element/FiniteElement.h"
 #include "finite_element/FiniteElementMesh.h"
 #include "sparse_linear_algebra/SparseMatrix.h"
 #include "sparse_linear_algebra/Vector.h"
@@ -19,7 +20,7 @@ namespace assembler
 class Assembler
 {
   public:
-    using ElementOperation        = std::function<void(finite_element::FiniteElementAccessor& fe)>;
+    using ElementOperation        = std::function<void(finite_element::FiniteElement::ConstParams, finite_element::FiniteElementAccessor& fe)>;
     using ElementMatrixReturnType = simple_math::EigenBlockMatrix;
     using ElementMatrixCallback =
       std::function<ElementMatrixReturnType(finite_element::FiniteElementAccessor& fe)>;

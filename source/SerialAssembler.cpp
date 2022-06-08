@@ -39,7 +39,7 @@ void assembler::SerialAssembler::execute(const std::vector<double>& local_soluti
         // Execute queued element operations
         for (ElementOperation& operation : queued_operations_)
         {
-            operation(fe);
+            operation(params, fe);
         }
 
         if (fe.element.parent_partition() == utility::MPIUtils::get_local_rank())

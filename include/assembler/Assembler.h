@@ -52,7 +52,7 @@ class Assembler
     /// Queue a element to global vector assembly operation.
     /// \param flag - indicates what quantity at the element level to calculate, which will be
     ///        assembled into the global vector.
-    /// \param gl_matrix - the global vector to assemble the element quantities into.
+    /// \param gl_vector - the global vector to assemble the element quantities into.
     void queue_assembly(const finite_element::FEMatricesAndVectors::Flags flag,
                         sparse_linear_algebra::Vector* gl_vector);
 
